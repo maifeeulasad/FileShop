@@ -44,4 +44,9 @@ urlpatterns = [
         views.UpdatePaymentStatusCallback.as_view(),
         name="payment_status_update",
     ),
+    path(
+        "login/",
+        views.LoginView.as_view(),
+        name="login"
+    ),
 ]

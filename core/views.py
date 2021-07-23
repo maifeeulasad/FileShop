@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, reverse, get_object_or_404
 from .models import Payment, File, Product
-from .forms import ProductForm, ProductEmailForm
+from .forms import ProductForm, ProductEmailForm, LoginForm
 from django.views import generic
 from django.views.generic.detail import SingleObjectMixin
 from hitcount.views import HitCountDetailView
-from django.http.response import Http404, HttpResponse, JsonResponse
+from django.http.response import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
 from .blockonomics_utils import create_payment, exchanged_rate, exchanged_rate_to_usd
 import requests
 import json
@@ -13,6 +13,14 @@ from django.utils.decorators import method_decorator
 from .utils import zipFiles, email_helper, create_payment_helper, check_session_validity
 from django.db.models import Prefetch
 from datetime import datetime, timedelta
+from django.views.generic.edit import FormView
+from django.contrib.auth.forms import AuthenticationForm
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.generic.base import TemplateResponseMixin
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
 
 # Create your views here.
 
@@ -332,3 +340,28 @@ class UpdatePaymentStatusCallback(generic.View):
             )
         payment.save()
         return HttpResponse(200)
+
+
+
+class LoginView(FormView):
+    context_object_name = 'login'
+    template_name = 'login.html'
+    form_class = LoginForm
+
+    def get(self, request, *args, **kwargs):
+        return super(LoginView, self).get(request, *args, **kwargs)
+
+    def dispatch(self, *args, **kwargs):
+        return super(LoginView, self).dispatch(*args, **kwargs)
+
+    def form_valid(self, form):
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(self.request,user)
+                return HttpResponseRedirect('/')
+            else:
+                messages.error(self.request, 'Invalid Credentials')
+                return HttpResponseRedirect('/login')

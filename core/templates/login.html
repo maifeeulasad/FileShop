@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class='container cnt d-flex justify-content-center '>
+        <h1>Login</h1>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" />
+        </form>
+    </div>
+    {% for message in messages %}
+        <div class="alert alert-warning">
+            <a class="close" href="#" data-dismiss="alert">×</a>
+            {{ message }}
+        </div>
+    {% endfor %}
+
+{% endblock %}
